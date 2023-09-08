@@ -18,6 +18,8 @@ typedef struct stationTreeNode{
     int bestCar;
     carTreeNode *cars;
 
+    int dist;
+
     struct stationTreeNode *previous;
 
     struct stationTreeNode *parent;
@@ -28,9 +30,12 @@ typedef struct stationTreeNode{
     struct stationTreeNode *prev;
     struct stationTreeNode *next;
 
+    
+
 } stationTreeNode;
 
 typedef struct stationsQueue {
+    int dist;
     stationTreeNode *station;
 
     struct stationsQueue *next;
@@ -61,6 +66,7 @@ void nextCommand();
 
 
 // ------------------ DEBUG ------------------
+void printDist(stationTreeNode *s);
 void printTreesDebug();
 void printStations(stationTreeNode *s);
 void printCarList(carTreeNode *s);
@@ -599,6 +605,7 @@ void setTreeWhite(stationTreeNode *s) {
     if(s == NULL) return;
     s->color = 0;
     s->previous = NULL;
+    s->dist = -1;
     setTreeWhite(s->leftChild);
     setTreeWhite(s->rightChild);
 }
@@ -611,10 +618,34 @@ void printResult(stationTreeNode *s) {
 }
 
 void printResultReverse(stationTreeNode *s) {
-    if(s == NULL) return;
+    // if(s == NULL) return;
 
-    printf(" %d", s->distance);
-    printResultReverse(s->previous);
+    // printf(" %d", s->distance);
+    // printResultReverse(s->previous);
+
+    //return;
+
+    stationTreeNode *current = s;
+
+    do {
+        if(s->prev == NULL || s->prev->dist != s->dist) {
+            printf("%d",s->distance);
+            current = s;
+            s = s->prev;
+            if(s != NULL && s->dist != -1) printf(" ");
+        }
+        else if(current->distance-s->prev->distance > current->bestCar) {
+            printf("%d ",s->distance);
+            current = s;
+            
+            while(s->dist == current->dist) {
+                s = s->prev;    
+            }
+        }
+        else {
+            s = s->prev;
+        }
+    } while(s->dist != -1);
 }
 
 void plan() {
@@ -630,11 +661,11 @@ void plan() {
 
     int count = 1;
 
-    if(firstStation > secondStation) {
-        car = firstStation;
-        secondStation = firstStation;
-        firstStation = car;
-    }
+    // if(firstStation > secondStation) {
+    //     car = firstStation;
+    //     firstStation = secondStation;
+    //     secondStation = car;
+    // }
 
     if(firstStation < secondStation) {
         head = (stationsQueue*)malloc(sizeof(stationsQueue));
@@ -692,31 +723,309 @@ void plan() {
 
     }
     else {
+        
+        
+        // head = (stationsQueue*)malloc(sizeof(stationsQueue));
+        // getStation(firstStation)->previous = NULL;
+        // head->station = getStation(secondStation);
+        // head->station->previous = NULL;
+        // head->next= NULL;
+        // tail = head;
+
+        // count = 1;
+
+        // while(head != NULL) {
+        //     s1 = head->station;
+        //     s2 = s1;
+        //     t = head;
+        //     head = head->next;
+        //     free(t);
+           
+        //     count--;
+            
+        //     do {
+        //         s2 = s2->next;
+        //         if(s2 == NULL) break;
+
+        //         car = s2->bestCar;
+
+        //         if(s2->distance-s1->distance <= car && s2->color == 0 && s2->distance <= firstStation) {
+        //             s2->color = 1;
+        //             s2->previous = s1;
+        //             if(count) {
+        //                 tail->next = (stationsQueue*)malloc(sizeof(stationsQueue));
+                        
+        //                 tail = tail->next;
+        //                 tail->station = s2;
+        //                 tail->next= NULL;
+        //             }
+        //             else {
+        //                 head = (stationsQueue*)malloc(sizeof(stationsQueue));
+                        
+        //                 head->station = s2;
+        //                 head->next= NULL;
+        //                 tail = head;
+        //             }   
+        //             count++;
+        //         }
+        //     } while(s2->distance <= firstStation);               
+        // }
+
+        // if(getStation(firstStation)->previous==NULL) {
+        //     printf("nessun percorso\n");
+        // }
+        // else {
+        //     printf("%d",firstStation);
+        //     printResultReverse(getStation(firstStation)->previous);
+        //     printf("\n");
+        // }
+
+        // stationTreeNode *current = getStation(firstStation);
+        // stationTreeNode *previous = current;
+        // current = current->prev;
+
+        // stationTreeNode *t;
+
+        
+        // //current = current->prev;
+
+        // //last->previous = NULL;
+        // //current->previous = NULL;
+        // if(current != NULL) {
+        //     do {
+                
+        //         if(previous->distance-current->distance > current->bestCar) {
+        //             // non c'è un percorso
+        //             break;
+        //         }
+
+        //         t = current->next;
+        //         while(t!=NULL && t->distance <= firstStation && t->distance-current->distance <= current->bestCar) {
+        //             current->previous = t;
+        //             t = t->previous;
+        //         }
+
+        //         previous = current;
+        //         current = current->prev;
+
+        //     }while(current != NULL && current->distance >= secondStation);
+        //     //printf("\n\n%d    %d    %d \n\n", previous->distance, current->distance, current->distance);
+        // }
+
+        // ===============================================================
+
+        // head = (stationsQueue*)malloc(sizeof(stationsQueue));
+        // getStation(secondStation)->previous = NULL;
+        // head->station = getStation(firstStation);
+        // head->station->previous = NULL;
+        // head->next= NULL;
+        // tail = head;
+
+        // int count2 = 1;
+
+
+        // while(head != NULL) {
+        //     s1 = head->station;
+        //     s2 = s1;
+        //     t = head;
+        //     head = head->next;
+        //     free(t);
+        //     count2--;
+            
+
+        //     car = getBestCar(s1);
+            
+            
+
+        //     head2 = NULL;
+        //     tail2 = NULL;
+        //     count = 0;
+
+            
+            
+        //     do {
+                
+        //         s2 = getPreviousStation(s2);
+                
+
+                
+              
+        //         if(s2 == NULL) break;
+        //         if(s1->distance-s2->distance <= car && s2->color == 0 && s2->distance >= secondStation) {
+        //             s2->color = 1;
+        //             s2->previous = s1;
+        //             if(count) {
+        //                 temp = (stationsQueue*)malloc(sizeof(stationsQueue));
+        //                 // temp->next = head2;
+
+        //                 // head2 = temp;
+        //                 // head2->station = s2;
+        //                 temp->next = NULL;
+
+        //                 tail2->next = temp;
+        //                 tail2 = tail2->next;
+        //                 tail2->station = s2;
+        //             }
+        //             else {
+        //                 head2 = (stationsQueue*)malloc(sizeof(stationsQueue));
+        //                 // head2->station = s2;
+        //                 // head2->next= NULL;
+        //                 // tail2 = head2;
+
+        //                 head2->station = s2;
+        //                 head2->next= NULL;
+        //                 tail2 = head2;
+        //             }   
+        //             count++;
+        //         }
+
+                
+
+        //     } while(s1->distance-s2->distance <= car && s2->distance >= secondStation);
+            
+                
+        //     if(count) {
+        //         if(count2) {
+        //             tail->next = head2;
+        //             tail = tail2;
+        //         }
+        //         else {
+        //             head = head2;
+        //             tail = tail2;
+
+        //         }
+        //     }
+
+        //     count2+=count;
+
+            
+        // }
+
+        // ================================================
+
+        // head = (stationsQueue*)malloc(sizeof(stationsQueue));
+        // getStation(firstStation)->previous = NULL;
+        // head->station = getStation(secondStation);
+        // head->station->previous = NULL;
+        // head->next= NULL;
+        // tail = head;
+
+        // count = 1;
+
+
+        // while(head != NULL) {
+        //     s1 = head->station;
+        //     s2 = s1;
+        //     t = head;
+        //     head = head->next;
+        //     free(t);
+        //     count2--;
+        //     count--;
+            
+        //     head2 = NULL;
+        //     tail2 = NULL;
+        //     count = 0;
+
+            
+            
+        //     do {
+                
+        //         s2 = s2->next;//getNextStation(s2);
+                
+        //         if(s2 == NULL) break;
+
+        //         car = s2->bestCar;
+
+        //         if(s2->distance == 95 ) {
+
+                    
+        //             //check(stations);
+        //             printf("\n\n ccccccccccccccc\n");
+        //             printStations(stations);
+
+
+
+        //             printf("\nbbbbbbbbbbbbbb\n\n");
+        //             stationTreeNode *r,*s = stations;
+        //             while(s->leftChild != NULL) s = s->leftChild;
+        //             while(s != NULL) {
+        //                 printf("%d\t",s->distance);
+        //                 s = getNextStation(s);
+
+        //                 // if(s->distance == 355) {
+        //                 //     r = s->parent;
+        //                 //     printf("\n\n%x   %x  %x  %x\n\n", s,s->parent, r->leftChild, r->rightChild);
+        //                 // }
+        //             }
+        //             printf("\naaaaaaaaaa\n\n");
+
+        //             printf("\n\n\n");
+        //             s = stations;
+        //             while(s != NULL) {
+        //                 printf("%d\t",s->distance);
+        //                 s = getPreviousStation(s);
+
+        //                 if(s->distance == 1395) {
+        //                     printf("%x  %x  %x", s->parent, s->leftChild, s->rightChild);
+        //                 }
+        //             }
+
+        //             printParents(stations);
+        //         }
+
+
+        //         if(s2->distance-s1->distance <= car && s2->color == 0 && s2->distance <= firstStation) {
+        //             s2->color = 1;
+        //             s2->previous = s1;
+        //             if(count) {
+        //                 tail->next = (stationsQueue*)malloc(sizeof(stationsQueue));
+                        
+        //                 tail = tail->next;
+        //                 tail->station = s2;
+        //                 tail->next= NULL;
+        //             }
+        //             else {
+        //                 head = (stationsQueue*)malloc(sizeof(stationsQueue));
+                        
+        //                 head->station = s2;
+        //                 head->next= NULL;
+        //                 tail = head;
+        //             }   
+        //             count++;
+        //         }
+
+                
+
+        //     } while(/*s2->distance-s1->distance <= car &&*/ s2->distance <= firstStation);+
+
         head = (stationsQueue*)malloc(sizeof(stationsQueue));
-        getStation(firstStation)->previous = NULL;
-        head->station = getStation(secondStation);
+        head->station = getStation(firstStation);
+        getStation(secondStation)->previous = NULL;
         head->station->previous = NULL;
         head->next= NULL;
         tail = head;
 
-        count = 1;
+        head->dist = 0;
 
         while(head != NULL) {
             s1 = head->station;
             s2 = s1;
             t = head;
+            s1->dist = t->dist;
             head = head->next;
             free(t);
-           
+            
+
             count--;
+
+            car = s1->bestCar;
             
             do {
-                s2 = s2->next;
+                s2 = s2->prev;
                 if(s2 == NULL) break;
 
-                car = s2->bestCar;
-
-                if(s2->distance-s1->distance <= car && s2->color == 0 && s2->distance <= firstStation) {
+                if(-s2->distance+s1->distance <= car && s2->color == 0 && s2->distance >= secondStation) {
+                   
                     s2->color = 1;
                     s2->previous = s1;
                     if(count) {
@@ -725,6 +1034,7 @@ void plan() {
                         tail = tail->next;
                         tail->station = s2;
                         tail->next= NULL;
+                        tail->dist = s1->dist+1;
                     }
                     else {
                         head = (stationsQueue*)malloc(sizeof(stationsQueue));
@@ -732,31 +1042,37 @@ void plan() {
                         head->station = s2;
                         head->next= NULL;
                         tail = head;
+                        tail->dist = s1->dist+1;
                     }   
                     count++;
                 }
-            } while(s2->distance <= firstStation);               
+            } while(-s2->distance+s1->distance <= car && s2->distance >= secondStation);
         }
-        
-        // // // // stationTreeNode *current = getStation(secondStation);
-        // // // // stationTreeNode *last = getStation(firstStation);
-        // // // // last->previous = NULL;
-        // // // // current->previous = NULL;
 
-        // // // // while(current != last) {
-        // // // //     // klklklkllklklkl
-        // // // // }
+        //printDist(stations);
 
-        if(getStation(firstStation)->previous==NULL) {
+        if(/*getStation(secondStation)->previous==NULL*/ getStation(secondStation)->dist == -1) {
             printf("nessun percorso\n");
         }
         else {
-            printf("%d",firstStation);
-            printResultReverse(getStation(firstStation)->previous);
+            printResultReverse(getStation(firstStation));
             printf("\n");
         }
 
+    
+        
     }    
+}
+
+
+// ------------------ DEBUG ------------------
+void printDist(stationTreeNode *s) {
+    if(s == NULL) return;
+    printDist(s->leftChild);
+    
+    printf("\t%d - %d\n",s->distance, s->dist);
+    
+    printDist(s->rightChild);
 }
 
 void printPrevious(stationTreeNode *s) {
@@ -847,3 +1163,4 @@ void printTreesDebug() {
     printf("\n");
 
 }
+// -------------------------------------------
