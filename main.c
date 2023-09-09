@@ -1,8 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+typedef enum {RED,BLACK} RBColor;
+
 typedef struct carTreeNode{
     int autonomy;
+
+    RBColor rbcolor;
 
     struct carTreeNode* leftChild;
     struct carTreeNode* rightChild;
@@ -12,6 +16,8 @@ typedef struct carTreeNode{
 
 typedef struct stationTreeNode{
     int distance;
+
+    RBColor rbcolor;
 
     int path;
 
@@ -41,13 +47,21 @@ typedef struct stationsQueue {
 stationsQueue *head=NULL, *tail=NULL, *head2, *tail2, *temp;
 
 stationTreeNode *stations = NULL;
+stationTreeNode *nilNode;
 
 int aux;
+int kl = 1;
+
+void cExit(int code);
+
+void rotateRightStation(stationTreeNode *s);
+void rotateLeftStation(stationTreeNode *s);
+void rotateRightCar(stationTreeNode *s,carTreeNode *c);
+void rotateLeftCar(stationTreeNode *s,carTreeNode *c);
+
 
 stationTreeNode* getStation(int distance);
-
 stationTreeNode* getNextStation(stationTreeNode* s);
-
 stationTreeNode* getPreviousStation(stationTreeNode* s);
 
 int getBestCar(stationTreeNode* s);
@@ -72,17 +86,134 @@ void printPrevious(stationTreeNode *s);
 void printParents(stationTreeNode *s);
 void check(stationTreeNode *s);
 void printBestCars(stationTreeNode *s);
+void printRBStations(stationTreeNode *s, int count);
 // --------------------------------------------
 
 
 int main() {
+    nilNode = (stationTreeNode*)malloc(sizeof(stationTreeNode));
+    nilNode->rbcolor = BLACK;
+    
     while (1) {
+        
+        //if(kl == 5340) exit(99);
+
         if(feof(stdin)) break;
         
+        //printf("%d ", kl++);
+        
+        // printf("\n\n");
+        // printRBStations(stations, 0);
+        // printf("\n\n"); 
+        
+        
+
         nextCommand();
     }
 
     return 0;
+}
+
+void cExit(int code) {
+    printf("\n\nProgramma terminato con codice: %d\n\n", code);
+    exit(code);
+}
+
+void rotateRightStation(stationTreeNode *s) {
+    stationTreeNode *t = s->leftChild;
+    if (t == NULL) cExit(1);
+
+    if(s->parent == NULL) {
+        stations = t;
+    }
+    else if(s->parent->rightChild == s) {
+        s->parent->rightChild = t;
+    }
+    else {
+        s->parent->leftChild = t;
+    }
+
+    s->leftChild = t->rightChild;
+
+    if(s->leftChild != NULL) {
+        s->leftChild->parent = s;
+    }
+
+    t->parent = s->parent;
+    t->rightChild = s;
+    s->parent = t;
+}
+void rotateLeftStation(stationTreeNode *s) {
+    stationTreeNode *t = s->rightChild;
+    if (t == NULL) cExit(2);
+
+    if(s->parent == NULL) {
+        stations = t;
+    }
+    else if(s->parent->rightChild == s) {
+        s->parent->rightChild = t;
+    }
+    else {
+        s->parent->leftChild = t;
+    }
+
+    s->rightChild = t->leftChild;
+
+    if(s->rightChild != NULL) {
+        s->rightChild->parent = s;
+    }
+
+    t->parent = s->parent;
+    t->leftChild = s;
+    s->parent = t;
+}
+void rotateRightCar(stationTreeNode *s,carTreeNode *c) {
+    carTreeNode *t = c->leftChild;
+    if (c == NULL) cExit(3);
+
+    if(c->parent == NULL) {
+        s->cars = c;
+    }
+    else if(c->parent->rightChild == c) {
+        c->parent->rightChild = t;
+    }
+    else {
+        c->parent->leftChild = t;
+    }
+
+    c->leftChild = t->rightChild;
+
+    if(c->leftChild != NULL) {
+        c->leftChild->parent = c;
+    }
+
+    t->parent = c->parent;
+    t->rightChild = c;
+    c->parent = t;
+}
+void rotateLeftCar(stationTreeNode *s,carTreeNode *c) {
+    carTreeNode *t = c->rightChild;
+    if (t == NULL) cExit(4);
+
+    if(c->parent == NULL) {
+        s->cars = t;
+    }
+    else if(c->parent->rightChild == c) {
+        c->parent->rightChild = t;
+    }
+    else {
+        c->parent->leftChild = t;
+    }
+
+    c->rightChild = t->leftChild;
+
+    if(c->rightChild != NULL) {
+        c->rightChild->parent = c;
+    }
+
+    t->parent = c->parent;
+    t->leftChild = c;
+    c->parent = t;
 }
 
 stationTreeNode* getStation(int distance) {
@@ -206,7 +337,7 @@ void nextCommand() {
             break;
 
         case 'b':
-            exit(1);
+            cExit(5);
             printTreesDebug();
 
             break;
@@ -218,6 +349,76 @@ void nextCommand() {
     }
 }
 
+void fixRBInsertStation(stationTreeNode *s) {
+    
+
+    
+
+    stationTreeNode* t = s->parent;
+    if(t == NULL) {
+        s->rbcolor = BLACK;
+        return;
+    }
+
+        
+    if(t->rbcolor == BLACK) return;
+
+    
+
+    if(t->parent == NULL) {
+        t->rbcolor = BLACK;
+        return;
+    }
+    
+
+    stationTreeNode *g = t->parent;
+
+    
+
+    stationTreeNode *t2;
+    if(g->leftChild == t) t2 = g->rightChild;
+    else t2 = g->leftChild;
+
+    
+
+    if(t2 != NULL && t2->rbcolor == RED) {
+        
+        t->rbcolor = BLACK;
+        g->rbcolor = RED;
+        t2->rbcolor = BLACK;
+
+        fixRBInsertStation(g);
+    }
+    else if(t == g->leftChild) {
+        
+        if(s == t->rightChild) {
+            rotateLeftStation(t);
+
+            t = s;
+        }
+
+        rotateRightStation(g);
+
+        t->rbcolor = BLACK;
+        g->rbcolor = RED;
+    }
+    else {
+        
+        if(s == t->leftChild) {
+
+            rotateRightStation(t);
+
+            t = s;
+        }
+
+        rotateLeftStation(g);
+
+        t->rbcolor = BLACK;
+        g->rbcolor = RED;
+    }
+
+    
+}
 
 int addStation() {
     int stationDistance, n, carAutonomy;
@@ -292,6 +493,7 @@ int addStation() {
 
     if(stations == NULL) {
         stations = newNode;
+        newNode->rbcolor = BLACK;
         stations->parent = NULL;
         return 1;
     }
@@ -303,7 +505,7 @@ int addStation() {
             if(u->leftChild == NULL) {
                 u->leftChild = newNode;
                 u->leftChild->parent = u;
-                break;;
+                break;
             }
             else {
                 u = u->leftChild;
@@ -334,11 +536,114 @@ int addStation() {
     if(newNode->prev != NULL)
         newNode->prev->next = newNode;
 
+    newNode->rbcolor = RED;
+
+ 
+
+    fixRBInsertStation(newNode);
+
     return 1;
 }
 
+RBColor getColor(stationTreeNode *s) {
+    if (s == NULL) return BLACK;
+    return s->rbcolor;
+}
+
+void fixRBDeleteStation(stationTreeNode *s) {
+
+    
+
+    stationTreeNode *p;
+    p = s->parent;
+    if(p == NULL) {
+        s->rbcolor = BLACK;
+        return;
+    }
+
+
+    stationTreeNode* t;
+
+    if(p->rightChild == s) {
+        t = p->leftChild;
+    }
+    else {
+        t = p->rightChild;
+    }
+
+
+    if(t!= NULL && t->rbcolor == RED) {
+        t->rbcolor = BLACK;
+        s->parent->rbcolor= RED;
+
+        if(s == s->parent->leftChild) {
+            rotateLeftStation(s->parent);
+            t = s->parent->rightChild;
+        }
+        else {
+            rotateRightStation(s->parent);
+             t = s->parent->leftChild;
+        }
+    }
+
+    
+    int isl = s == p->leftChild;
+
+    
+
+    if(getColor(t->leftChild) == BLACK && getColor(t->rightChild) == BLACK) {
+
+        t->rbcolor = RED;
+
+        if(s->parent->rbcolor == RED) {
+            s->parent->rbcolor = BLACK;
+        }
+        else {
+            fixRBDeleteStation(s->parent);
+        }
+    
+    } 
+    else {
+        
+        if(s->parent->leftChild == s && BLACK== getColor(t->rightChild)) {
+            
+            t->leftChild->rbcolor = BLACK;
+            t->rbcolor = RED;
+            rotateRightStation(t);
+            t = s->parent->rightChild;
+        }
+        else if(s->parent->rightChild == s && BLACK== getColor(t->leftChild)) {
+        
+            t->rightChild->rbcolor = BLACK;
+            t->rbcolor = RED;
+            rotateLeftStation(t);
+            t = s->parent->leftChild;
+        }
+        
+
+        t->rbcolor = s->parent->rbcolor;
+        s->parent->rbcolor = BLACK;
+
+        if(isl) {
+            t->rightChild->rbcolor = BLACK;
+            rotateLeftStation(s->parent);
+        }
+        else {
+            t->leftChild->rbcolor = BLACK;
+            rotateRightStation(s->parent);
+        }
+    }
+}
+
 void deleteStationFromTree(stationTreeNode *s) {
+    
+
+
+    RBColor deletedNodeColor = s->rbcolor;
+    stationTreeNode *t;
+
     if(s->leftChild == NULL && s->rightChild == NULL) {
+        
         if(s->prev != NULL) {
             s->prev->next = s->next;
         }
@@ -346,19 +651,26 @@ void deleteStationFromTree(stationTreeNode *s) {
             s->next->prev = s->prev;
         }
 
-        if(s->parent == NULL) {
-            free(s);
-            stations = NULL;
-        }
-        else {
-            if(s->parent->distance > s->distance) {
-                s->parent->leftChild = NULL;
+        if(s->rbcolor == RED) {
+            if(s->parent == NULL) {
+                free(s);
+                stations = NULL;
             }
             else {
-                s->parent->rightChild = NULL;
-            }
+                if(s->parent->distance > s->distance) {
+                    s->parent->leftChild = NULL;
+                }
+                else {
+                    s->parent->rightChild = NULL;
+                }
 
-            free(s);
+                free(s);
+            }
+        }
+        else {
+            s->distance = -1;
+            t = s;
+            
         }
     }
     else if (s->leftChild != NULL && s->rightChild != NULL) {
@@ -369,9 +681,11 @@ void deleteStationFromTree(stationTreeNode *s) {
         s->next = t->next;
 
         deleteStationFromTree(t);
-
+        return;
     }
     else if (s->leftChild != NULL && s->rightChild == NULL) {
+        t = s->leftChild;
+
         if(s->prev != NULL) {
             s->prev->next = s->next;
         }
@@ -397,7 +711,9 @@ void deleteStationFromTree(stationTreeNode *s) {
         free(s);
     }
     else if (s->leftChild == NULL && s->rightChild != NULL) {
-        
+   
+        t = s->rightChild;
+
         if(s->prev != NULL) {
             s->prev->next = s->next;
         }
@@ -421,6 +737,29 @@ void deleteStationFromTree(stationTreeNode *s) {
         }
 
         free(s);
+    }
+
+    if(deletedNodeColor == BLACK) {
+        fixRBDeleteStation(t);
+
+        if(t->distance == -1) {
+            if(s->parent == NULL) {
+                free(t);
+                stations = NULL;
+            }
+            else {
+                
+                if(t == t->parent->leftChild) {
+                    t->parent->leftChild = NULL;
+
+                }
+                else {
+                    t->parent->rightChild = NULL;
+                }
+
+                free(t);
+            }
+        }
     }
 }
 
@@ -497,8 +836,7 @@ int addCar() {
 
 void deleteCarFromTree(stationTreeNode* s, carTreeNode *t) {
 
-    if(t->leftChild == NULL && t->rightChild == NULL) {
-        
+    if(t->leftChild == NULL && t->rightChild == NULL) {    
 
 
         if(t->parent == NULL) {
@@ -513,7 +851,7 @@ void deleteCarFromTree(stationTreeNode* s, carTreeNode *t) {
             }
             else {
                 //printf("%d %d",t->parent->leftChild, t->parent->rightChild);
-                exit(1);
+                cExit(6);
             }
         }
 
@@ -954,4 +1292,24 @@ void printTreesDebug() {
 
     printf("\n");
 
+}
+
+int getTreeDepth(stationTreeNode *s) {
+    if(s == NULL) return 0;
+    int a = getTreeDepth(s->leftChild);
+    int b = getTreeDepth(s->rightChild);
+    if(a > b) return a+1;
+    else return b+1;
+
+}
+
+void printRBStations(stationTreeNode *s, int count) {
+    if(s == NULL) {
+        printf(" %d ", count);
+        return;
+    }
+    
+
+    printRBStations(s->leftChild, count+(s->rbcolor == BLACK));
+    printRBStations(s->rightChild, count+(s->rbcolor == BLACK));
 }
